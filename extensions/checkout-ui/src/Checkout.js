@@ -13,25 +13,25 @@ export default extension(
     // Wait for the address to be updated
     await new Promise((resolve) => setTimeout(resolve, 100)); // Adjust the timeout as needed
 
-    // Validate special characters in address fields
-    const isValidAddress = (value) => /^[a-zA-Z0-9 ,._-]+$/.test(value);
+    // Validate address length and special characters
+    const isValidAddress = (value) => {
+      return value.length <= 30;
+    };
 
     // Intercept logic
     buyerJourney.intercept(({ canBlockProgress }) => {
-     console.log(shippingAddress, address, "how");
-
       const errors = [];
 
-      if (!isValidAddress(address?.address1)) {
+      if (address?.address1 && !isValidAddress(address.address1)) {
         errors.push({
-          message: 'Invalid characters in address line 1. Please use only letters, numbers, spaces, hyphen (-), underscore (_), comma (,), or period (.).',
+          message: 'Address line 1 cannot exceed 30 characters.',
           target: '$.cart.deliveryGroups[0].deliveryAddress.address1',
         });
       }
 
-      if (!isValidAddress(address?.address2)) {
+      if (address?.address2 && !isValidAddress(address.address2)) {
         errors.push({
-          message: 'Invalid characters in address line 2. Please use only letters, numbers, spaces, hyphen (-), underscore (_), comma (,), or period (.).',
+          message: 'Address line 2 cannot exceed 30 characters.',
           target: '$.cart.deliveryGroups[0].deliveryAddress.address2',
         });
       }
@@ -39,7 +39,7 @@ export default extension(
       if (canBlockProgress && errors.length > 0) {
         return {
           behavior: 'block',
-          reason: 'Invalid characters in address',
+          reason: 'Invalid address length',
           errors,
         };
       } else {
